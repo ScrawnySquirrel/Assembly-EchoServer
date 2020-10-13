@@ -1,5 +1,3 @@
-%include 'functions.asm'
-
 ;; TCP echo server using x86_64 Linux syscalls
 ;; Assemble and link as follows:
 ;;        nasm -f elf64 -o server.o server.asm
@@ -254,5 +252,10 @@ _get_ip:
     mov edx, 256
     int 80h
 
-    mov eax, ipaddr
-    call sprint
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, ipaddr
+    mov edx, 256
+    int 80h
+
+    ret
