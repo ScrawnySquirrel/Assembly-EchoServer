@@ -144,9 +144,8 @@ _read:
     mov     rax, 0          ; SYS_READ
     mov     rdi, [sock]   ; client socket fd
     mov     rsi, echobuf    ; buffer
-    mov     rdx, 256        ; read 256 bytes
+    mov     rdx, [read_count]        ; read [read_count] bytes
     syscall
-
 
     mov eax, 4
     mov ebx, 1
@@ -157,9 +156,8 @@ _read:
     mov eax, 4
     mov ebx, 1
     mov ecx, echobuf
-    mov edx, 256
+    mov edx, [read_count]
     int 80h
-
     ret
 
 ;; Sends up to the value of read_count bytes from echobuf to the client socket
@@ -168,11 +166,9 @@ _echo:
     mov     rax, 1               ; SYS_WRITE
     mov     rdi, [sock]        ; client socket fd
     mov     rsi, echobuf         ; buffer
-    mov     rdx, 256    ; number of bytes received in _read
+    mov     rdx, [read_count]        ; read 256 bytes
+    ; mov     rdx, 256    ; number of bytes received in _read
     syscall
-
-    ;; Copy number of bytes read to variable
-    mov     [read_count], rax
 
     ret
 
@@ -257,22 +253,19 @@ _get_msg:
     mov edx, client_prompt_len
     int 80h
 
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, echobuf
-    mov edx, 256
-    int 80h
+
+    mov       rax, 0             ; SYS_WRITE
+    mov       rdi, 0             ; STDOUT
+    mov       rsi, echobuf
+    mov       rdx, 256
+    syscall
+
+    mov [read_count], rax
 
     ; mov eax, 4
     ; mov ebx, 1
-    ; mov ecx, ipaddr
-    ; mov edx, 256
+    ; mov ecx, echobuf
+    ; mov edx, [read_count]
     ; int 80h
 
     ret
-
-_print:
-    mov eax, 4
-    mov ebx, 1
-    mov edx, 256
-    int 80h
