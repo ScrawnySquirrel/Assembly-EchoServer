@@ -34,13 +34,13 @@ section .data
     accept_msg          db "Client Connected!", 0x0a, 0
     accept_msg_len      equ $ - accept_msg
 
-    ip_msg          db "IP:", 0x0a, 0
+    ip_msg          db "IP: "
     ip_msg_len      equ $ - ip_msg
 
-    client_prompt          db "Client message:", 0x0a, 0
+    client_prompt          db "Client message: "
     client_prompt_len      equ $ - client_prompt
 
-    server_prompt          db "Server message:", 0x0a, 0
+    server_prompt          db "Server message: "
     server_prompt_len      equ $ - server_prompt
 
 
@@ -158,6 +158,7 @@ _read:
     mov ecx, echobuf
     mov edx, [read_count]
     int 80h
+    
     ret
 
 ;; Sends up to the value of read_count bytes from echobuf to the client socket
@@ -237,14 +238,7 @@ _get_ip:
     mov edx, 256
     int 80h
 
-    ; mov eax, 4
-    ; mov ebx, 1
-    ; mov ecx, ipaddr
-    ; mov edx, 256
-    ; int 80h
-
     ret
-
 
 _get_msg:
     mov eax, 4
@@ -253,7 +247,6 @@ _get_msg:
     mov edx, client_prompt_len
     int 80h
 
-
     mov       rax, 0             ; SYS_WRITE
     mov       rdi, 0             ; STDOUT
     mov       rsi, echobuf
@@ -261,11 +254,5 @@ _get_msg:
     syscall
 
     mov [read_count], rax
-
-    ; mov eax, 4
-    ; mov ebx, 1
-    ; mov ecx, echobuf
-    ; mov edx, [read_count]
-    ; int 80h
 
     ret
