@@ -166,12 +166,12 @@ _read:
     ;; Copy number of bytes read to variable
     mov     [read_count], rax
 
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, echobuf
-    mov edx, [read_count]
-    int 80h
-
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, echobuf
+    mov rdx, [read_count]
+    syscall
+    
     ret
 
 ;; Sends up to the value of read_count bytes from echobuf to the client socket
