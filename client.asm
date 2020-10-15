@@ -151,17 +151,17 @@ _read:
     mov     rdx, [read_count]        ; read [read_count] bytes
     syscall
 
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, server_prompt
-    mov edx, server_prompt_len
-    int 80h
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, server_prompt
+    mov rdx, server_prompt_len
+    syscall
 
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, echobuf
-    mov edx, [read_count]
-    int 80h
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, echobuf
+    mov rdx, [read_count]
+    syscall
 
     ret
 
@@ -230,26 +230,26 @@ _exit:
     syscall
 
 _get_ip:
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, ip_msg
-    mov edx, ip_msg_len
-    int 80h
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, ip_msg
+    mov rdx, ip_msg_len
+    syscall
 
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, ipaddr
-    mov edx, 256
-    int 80h
+    mov rax, 0
+    mov rdi, 0
+    mov rsi, ipaddr
+    mov rdx, 256
+    syscall
 
     ret
 
 _get_msg:
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, client_prompt
-    mov edx, client_prompt_len
-    int 80h
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, client_prompt
+    mov rdx, client_prompt_len
+    syscall
 
     mov       rax, 0             ; SYS_WRITE
     mov       rdi, 0             ; STDOUT
