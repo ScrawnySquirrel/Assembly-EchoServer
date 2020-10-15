@@ -1,3 +1,5 @@
+%include 'functions.asm'
+
 ;; TCP echo server using x86_64 Linux syscalls
 ;; Assemble and link as follows:
 ;;        nasm -f elf64 -o server.o server.asm
@@ -48,7 +50,8 @@ section .data
     pop_sa istruc sockaddr_in
         at sockaddr_in.sin_family, dw 2           ; AF_INET
         at sockaddr_in.sin_port, dw 0xce56        ; port 22222 in host byte order
-        at sockaddr_in.sin_addr, dd 0x4501A8C0             ; localhost - INADDR_ANY
+        at sockaddr_in.sin_addr, dd 0             ; localhost - INADDR_ANY
+        ; at sockaddr_in.sin_addr, dd 0x4501A8C0             ; localhost - INADDR_ANY
         at sockaddr_in.sin_zero, dd 0, 0
     iend
     sockaddr_in_len     equ $ - pop_sa
@@ -69,6 +72,7 @@ _start:
 
     ;; Main loop handles connection requests (accept()) then echoes data back to client
     .mainloop:
+        mov dword [pop_sa + sockaddr_in.sin_addr], 0x4501A8C0
         call     _connect
 
         ;; Read and echo string back to the client
@@ -158,7 +162,7 @@ _read:
     mov ecx, echobuf
     mov edx, [read_count]
     int 80h
-    
+
     ret
 
 ;; Sends up to the value of read_count bytes from echobuf to the client socket
