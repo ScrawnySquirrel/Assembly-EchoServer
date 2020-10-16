@@ -1,3 +1,5 @@
+%include 'functions.asm'
+
 ;; TCP echo server using x86_64 Linux syscalls
 ;; Assemble and link as follows:
 ;;        nasm -f elf64 -o server.o server.asm
@@ -20,6 +22,7 @@ section .bss
     client resw 2
     echobuf resb 256
     read_count resw 2
+    portnum resw 1
 
 section .data
     sock_err_msg        db "Failed to initialize socket", 0x0a, 0
@@ -37,10 +40,15 @@ section .data
     accept_msg          db "Client Connected!", 0x0a, 0
     accept_msg_len      equ $ - accept_msg
 
+    port_msg          db "Port: "
+    port_msg_len      equ $ - port_msg
+    portdefault dw 0xce56
+
     ;; sockaddr_in structure for the address the listening socket binds to
     pop_sa istruc sockaddr_in
         at sockaddr_in.sin_family, dw 2           ; AF_INET
-        at sockaddr_in.sin_port, dw 0xce56        ; port 22222 in host byte order
+        at sockaddr_in.sin_port, dw 0        ; port 22222 in host byte order
+        ; at sockaddr_in.sin_port, dw 0xce56        ; port 22222 in host byte order
         at sockaddr_in.sin_addr, dd 0             ; localhost - INADDR_ANY
         at sockaddr_in.sin_zero, dd 0, 0
     iend
@@ -53,6 +61,8 @@ _start:
     ;; Initialize listening and client socket values to 0, used for cleanup
     mov      word [sock], 0
     mov      word [client], 0
+
+    call _get_port
 
     ;; Initialize socket
     call     _socket
@@ -171,7 +181,7 @@ _read:
     mov rsi, echobuf
     mov rdx, [read_count]
     syscall
-    
+
     ret
 
 ;; Sends up to the value of read_count bytes from echobuf to the client socket
@@ -246,3 +256,31 @@ _exit:
     .perform_exit:
     mov        rax, 60
     syscall
+
+_get_port:
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, port_msg
+    mov rdx, port_msg_len
+    syscall
+
+    xor rsi, rsi
+    mov rax, 0
+    mov rdi, 0
+    mov rsi, portnum
+    mov rdx, 6
+    syscall
+
+    cmp rax, 1
+    je .no_port_input
+
+    mov eax, portnum
+    call atoi
+    xchg al, ah
+    mov word [pop_sa + sockaddr_in.sin_port], ax
+    ret
+
+.no_port_input:
+    mov eax, [portdefault]
+    mov word [pop_sa + sockaddr_in.sin_port], ax
+    ret
