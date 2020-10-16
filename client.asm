@@ -24,6 +24,7 @@ section .bss
     read_count resw 2
 
     ipaddr resd 2
+    portnum resw 1
     pStruc resd 1
 
 section .data
@@ -39,17 +40,24 @@ section .data
     ip_msg          db "IP: "
     ip_msg_len      equ $ - ip_msg
 
+    port_msg          db "Port: "
+    port_msg_len      equ $ - port_msg
+
     client_prompt          db "Client message: "
     client_prompt_len      equ $ - client_prompt
 
     server_prompt          db "Server message: "
     server_prompt_len      equ $ - server_prompt
 
+    ipdefault dd 0x4501A8C0
+    portdefault dw 0xce56
+
 
     ;; sockaddr_in structure for the address the listening socket binds to
     pop_sa istruc sockaddr_in
         at sockaddr_in.sin_family, dw 2           ; AF_INET
-        at sockaddr_in.sin_port, dw 0xce56        ; port 22222 in host byte order
+        at sockaddr_in.sin_port, dw 0        ; port 22222 in host byte order
+        ; at sockaddr_in.sin_port, dw 0xce56        ; port 22222 in host byte order
         at sockaddr_in.sin_addr, dd 0             ; localhost - INADDR_ANY
         ; at sockaddr_in.sin_addr, dd 0x4501A8C0             ; localhost - INADDR_ANY
         at sockaddr_in.sin_zero, dd 0, 0
@@ -69,17 +77,18 @@ _start:
 
     ;; Get IP addr from user
     call _get_ip
+    call _get_port
 
-    ;; Main loop handles connection requests (accept()) then echoes data back to client
     .mainloop:
-        mov dword [pop_sa + sockaddr_in.sin_addr], 0x4501A8C0
+        mov eax, [ipdefault]
+        mov dword [pop_sa + sockaddr_in.sin_addr], eax
         call     _connect
 
         ;; Read and echo string back to the client
         ;; up the connection on their end.
         .readloop:
             call _get_msg
-            call     _echo
+            call _echo
             call _read
 
             ;; read_count is set to zero when client hangs up
@@ -242,6 +251,46 @@ _get_ip:
     mov rdx, 256
     syscall
 
+;     cmp rax, 1
+;     je .no_ip_input
+;
+;     mov eax, [ipaddr]
+;     mov dword [pop_sa + sockaddr_in.sin_addr], eax
+;     ret
+;
+; .no_ip_input:
+;     mov eax, [ipdefault]
+;     mov dword [pop_sa + sockaddr_in.sin_addr], eax
+;     syscall
+    ret
+
+_get_port:
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, port_msg
+    mov rdx, port_msg_len
+    syscall
+
+
+    xor rsi, rsi
+    mov rax, 0
+    mov rdi, 0
+    mov rsi, portnum
+    mov rdx, 6
+    syscall
+
+    cmp rax, 1
+    je .no_port_input
+
+    mov eax, portnum
+    call atoi
+    xchg al, ah
+    mov dword [pop_sa + sockaddr_in.sin_port], eax
+    ret
+
+.no_port_input:
+    mov eax, [portdefault]
+    mov dword [pop_sa + sockaddr_in.sin_port], eax
     ret
 
 _get_msg:
