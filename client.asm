@@ -52,16 +52,14 @@ section .data
     no_ip_msg          db "No IP provided", 0x0a, 0
     no_ip_msg_len      equ $ - no_ip_msg
 
-    ipdefault dd 0x4501A8C0
     portdefault dw 0xce56
 
     ;; sockaddr_in structure for the address the listening socket binds to
     pop_sa istruc sockaddr_in
         at sockaddr_in.sin_family, dw 2           ; AF_INET
-        at sockaddr_in.sin_port, dw 0        ; port 22222 in host byte order
         ; at sockaddr_in.sin_port, dw 0xce56        ; port 22222 in host byte order
+        at sockaddr_in.sin_port, dw 0        ; port 22222 in host byte order
         at sockaddr_in.sin_addr, dd 0             ; localhost - INADDR_ANY
-        ; at sockaddr_in.sin_addr, dd 0x4501A8C0             ; localhost - INADDR_ANY
         at sockaddr_in.sin_zero, dd 0, 0
     iend
     sockaddr_in_len     equ $ - pop_sa
@@ -70,6 +68,29 @@ section .text
 
 ;; Sever main entry point
 _start:
+    ;; Handle arguments
+    pop     rcx             ; first value on the stack is the number of arguments
+    pop     rdx             ; second value on the stack is the program name (discarded when we initialise rdx)
+    sub     rcx, 1          ; decrease rcx by 1 (number of arguments without program name)
+    mov     rdx, 0          ; initialise our data register to store additions
+
+    nextArg:
+        cmp     rcx, 0h         ; check to see if we have any arguments left
+        jz      noMoreArgs      ; if zero flag is set jump to noMoreArgs label (jumping over the end of the loop)
+        pop     rax             ; pop the next argument off the stack
+        call    atoi            ; convert our ascii string to decimal integer
+        add     rdx, rax        ; perform our addition logic
+        shl rdx, 8
+
+        dec     rcx             ; decrease rcx (number of arguments left) by 1
+        jmp     nextArg         ; jump to nextArg label
+
+    noMoreArgs:
+        shr rdx, 8
+        bswap edx
+        mov eax, edx
+        mov dword [pop_sa + sockaddr_in.sin_addr], eax
+
     ;; Initialize listening and client socket values to 0, used for cleanup
     mov      word [sock], 0
     mov      word [server], 0
@@ -77,13 +98,11 @@ _start:
     ;; Initialize socket
     call     _socket
 
-    ;; Get IP addr from user
-    call _get_ip
     call _get_port
 
     .mainloop:
-        mov eax, [ipdefault]
-        mov dword [pop_sa + sockaddr_in.sin_addr], eax
+        ; mov eax, [ipdefault]
+        ; mov dword [pop_sa + sockaddr_in.sin_addr], eax
         call     _connect
 
         ;; Read and echo string back to the client
@@ -256,8 +275,9 @@ _get_ip:
     cmp rax, 1
     je .no_ip_input
 
-;     mov eax, [ipaddr]
-;     mov dword [pop_sa + sockaddr_in.sin_addr], eax
+    mov eax, ipaddr
+    call atoi
+    mov dword [pop_sa + sockaddr_in.sin_addr], eax
     ret
 
 .no_ip_input: ;;; RE-ENABLE WHEN IP HANDLER IS FINISHED
@@ -289,12 +309,12 @@ _get_port:
     mov eax, portnum
     call atoi
     xchg al, ah
-    mov dword [pop_sa + sockaddr_in.sin_port], eax
+    mov word [pop_sa + sockaddr_in.sin_port], ax
     ret
 
 .no_port_input:
     mov eax, [portdefault]
-    mov dword [pop_sa + sockaddr_in.sin_port], eax
+    mov word [pop_sa + sockaddr_in.sin_port], ax
     ret
 
 _get_msg:
