@@ -49,9 +49,11 @@ section .data
     server_prompt          db "Server message: "
     server_prompt_len      equ $ - server_prompt
 
+    no_ip_msg          db "No IP provided", 0x0a, 0
+    no_ip_msg_len      equ $ - no_ip_msg
+
     ipdefault dd 0x4501A8C0
     portdefault dw 0xce56
-
 
     ;; sockaddr_in structure for the address the listening socket binds to
     pop_sa istruc sockaddr_in
@@ -251,17 +253,20 @@ _get_ip:
     mov rdx, 256
     syscall
 
-;     cmp rax, 1
-;     je .no_ip_input
-;
+    cmp rax, 1
+    je .no_ip_input
+
 ;     mov eax, [ipaddr]
 ;     mov dword [pop_sa + sockaddr_in.sin_addr], eax
-;     ret
-;
-; .no_ip_input:
-;     mov eax, [ipdefault]
-;     mov dword [pop_sa + sockaddr_in.sin_addr], eax
-;     syscall
+    ret
+
+.no_ip_input: ;;; RE-ENABLE WHEN IP HANDLER IS FINISHED
+    ; mov rax, 1
+    ; mov rdi, 1
+    ; mov rsi, no_ip_msg
+    ; mov rdx, no_ip_msg_len
+    ; syscall
+    ; call _exit
     ret
 
 _get_port:
@@ -270,7 +275,6 @@ _get_port:
     mov rsi, port_msg
     mov rdx, port_msg_len
     syscall
-
 
     xor rsi, rsi
     mov rax, 0
