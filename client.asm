@@ -57,7 +57,6 @@ section .data
     ;; sockaddr_in structure for the address the listening socket binds to
     pop_sa istruc sockaddr_in
         at sockaddr_in.sin_family, dw 2           ; AF_INET
-        ; at sockaddr_in.sin_port, dw 0xce56        ; port 22222 in host byte order
         at sockaddr_in.sin_port, dw 0        ; port 22222 in host byte order
         at sockaddr_in.sin_addr, dd 0             ; localhost - INADDR_ANY
         at sockaddr_in.sin_zero, dd 0, 0
@@ -81,7 +80,6 @@ _start:
         call    atoi            ; convert our ascii string to decimal integer
         add     rdx, rax        ; perform our addition logic
         shl rdx, 8
-
         dec     rcx             ; decrease rcx (number of arguments left) by 1
         jmp     nextArg         ; jump to nextArg label
 
@@ -101,8 +99,6 @@ _start:
     call _get_port
 
     .mainloop:
-        ; mov eax, [ipdefault]
-        ; mov dword [pop_sa + sockaddr_in.sin_addr], eax
         call     _connect
 
         ;; Read and echo string back to the client
