@@ -61,6 +61,12 @@ section .text
 
 ;; Sever main entry point
 _start:
+    mov       rax, 1             ; SYS_WRITE
+    mov       rdi, 1             ; STDOUT
+    mov       rsi, server_start_msg
+    mov       rdx, server_start_msg_len
+    syscall
+    
     ;; Initialize listening and client socket values to 0, used for cleanup
     mov      word [sock], 0
     mov      word [client], 0
@@ -75,11 +81,6 @@ _start:
 
     ;; Main loop handles connection requests (accept()) then echoes data back to client
     .mainloop:
-        mov       rax, 1             ; SYS_WRITE
-        mov       rdi, 1             ; STDOUT
-        mov       rsi, server_start_msg
-        mov       rdx, server_start_msg_len
-        syscall
         call     _accept
 
         ;; Read and echo string back to the client
