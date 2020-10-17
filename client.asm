@@ -74,13 +74,13 @@ _start:
 
   .nextArg:
     cmp rcx, 0h ; check to see if we have any arguments left
-    jz noMoreArgs ; if zero flag is set jump to noMoreArgs label (jumping over the end of the loop)
+    jz .noMoreArgs ; if zero flag is set jump to noMoreArgs label (jumping over the end of the loop)
     pop rax ; pop the next argument off the stack
     call  atoi ; convert our ascii string to decimal integer
     add rdx, rax ; perform our addition logic
     shl rdx, 8 ; shift value to left for next
     dec rcx ; decrease rcx (number of arguments left) by 1
-    jmp nextArg ; jump to nextArg label
+    jmp .nextArg ; jump to nextArg label
 
   .noMoreArgs:
     shr rdx, 8 ; remove last buffer left shift
