@@ -25,6 +25,9 @@ section .bss
     portnum resw 1
 
 section .data
+    server_start_msg        db "Server started!", 0x0a, 0
+    server_start_msg_len    equ $ - server_start_msg
+
     sock_err_msg        db "Failed to initialize socket", 0x0a, 0
     sock_err_msg_len    equ $ - sock_err_msg
 
@@ -72,6 +75,11 @@ _start:
 
     ;; Main loop handles connection requests (accept()) then echoes data back to client
     .mainloop:
+        mov       rax, 1             ; SYS_WRITE
+        mov       rdi, 1             ; STDOUT
+        mov       rsi, server_start_msg
+        mov       rdx, server_start_msg_len
+        syscall
         call     _accept
 
         ;; Read and echo string back to the client

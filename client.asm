@@ -28,6 +28,9 @@ section .bss
     pStruc resd 1
 
 section .data
+    client_start_msg        db "Client started!", 0x0a, 0
+    client_start_msg_len    equ $ - client_start_msg
+
     sock_err_msg        db "Failed to initialize socket", 0x0a, 0
     sock_err_msg_len    equ $ - sock_err_msg
 
@@ -99,6 +102,11 @@ _start:
     call _get_port
 
     .mainloop:
+        mov       rax, 1             ; SYS_WRITE
+        mov       rdi, 1             ; STDOUT
+        mov       rsi, client_start_msg
+        mov       rdx, client_start_msg_len
+        syscall
         call     _connect
 
         ;; Read and echo string back to the client
