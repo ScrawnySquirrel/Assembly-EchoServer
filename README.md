@@ -14,7 +14,7 @@ The client sends the message to the server and the server simply echo back the m
 ### Client
 1. nasm -f elf64 -o client.o client.asm
 2. ld client.o -o client
-3. ./client <server IP>
+3. ./client {server IP}
 
 > The server IP format uses whitespace as a separator character instead of the dot character. i.e. *192 168 1 69*
 
