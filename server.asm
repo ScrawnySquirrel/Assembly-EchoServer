@@ -61,17 +61,17 @@ section .text
 
 ;; Sever main entry point
 _start:
-    mov       rax, 1             ; SYS_WRITE
-    mov       rdi, 1             ; STDOUT
-    mov       rsi, server_start_msg
-    mov       rdx, server_start_msg_len
-    syscall
-    
     ;; Initialize listening and client socket values to 0, used for cleanup
     mov      word [sock], 0
     mov      word [client], 0
 
     call _get_port
+
+    mov       rax, 1             ; SYS_WRITE
+    mov       rdi, 1             ; STDOUT
+    mov       rsi, server_start_msg
+    mov       rdx, server_start_msg_len
+    syscall
 
     ;; Initialize socket
     call     _socket
