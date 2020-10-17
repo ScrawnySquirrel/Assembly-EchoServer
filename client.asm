@@ -95,6 +95,7 @@ _start:
     ; Initialize socket
     call _socket
 
+    ; Ask user for server port number
     call _get_port
 
   .mainloop:

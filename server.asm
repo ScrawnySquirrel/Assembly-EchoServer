@@ -65,8 +65,10 @@ _start:
     mov      word [sock], 0
     mov      word [client], 0
 
+    ; Ask user for server port number
     call _get_port
 
+    ; Print message to notify program start
     mov       rax, 1             ; SYS_WRITE
     mov       rdi, 1             ; STDOUT
     mov       rsi, server_start_msg
@@ -185,6 +187,7 @@ _read:
     ;; Copy number of bytes read to variable
     mov     [read_count], rax
 
+    ; Print received message to screen
     mov rax, 1
     mov rdi, 1
     mov rsi, echobuf
